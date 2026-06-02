@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CampagneRepository::class)]
+#[ORM\Table(name: "campagne")]
 class Campagne
 {
     #[ORM\Id]
@@ -14,9 +15,9 @@ class Campagne
     #[ORM\Column(name: "id_campagne", type: Types::BIGINT)]
     private ?string $id_campagne = null;
 
-    #[ORM\ManyToOne(targetEntity: Parcelle::class)]
+    #[ORM\ManyToOne(targetEntity: Parcelle::class, inversedBy: 'campagnes')] // Ajout du inversedBy
     #[ORM\JoinColumn(name: "id_parcelle", referencedColumnName: "id_parcelle", nullable: false)]
-    private ?Parcelle $id_parcelle = null;
+    private ?Parcelle $parcelle = null;
 
     #[ORM\ManyToOne(targetEntity: Culture::class)]
     #[ORM\JoinColumn(name: "id_culture", referencedColumnName: "id_culture", nullable: false)]
@@ -41,16 +42,8 @@ class Campagne
         return $this->id_campagne;
     }
 
-    public function getIdParcelle(): ?Parcelle
-    {
-        return $this->id_parcelle;
-    }
-
-    public function setIdParcelle(?Parcelle $parcelle): static
-    {
-        $this->id_parcelle = $parcelle;
-        return $this;
-    }
+    public function getParcelle(): ?Parcelle { return $this->parcelle; }
+    public function setParcelle(?Parcelle $parcelle): static { $this->parcelle = $parcelle; return $this; }
 
     public function getIdCulture(): ?Culture
     {

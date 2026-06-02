@@ -7,112 +7,59 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RealiserRepository::class)]
+#[ORM\Table(name: "realiser")]
 class Realiser
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\GeneratedValue(strategy: "IDENTITY")]
+    #[ORM\Column(name: "id_realisation", type: Types::BIGINT)]
     private ?string $id_realisation = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
-    private ?string $id_tache = null;
+    #[ORM\ManyToOne(targetEntity: Tache::class)]
+    #[ORM\JoinColumn(name: "id_tache", referencedColumnName: "id_tache", nullable: false)]
+    private ?Tache $tache = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
-    private ?string $id_campagne = null;
+    #[ORM\ManyToOne(targetEntity: Campagne::class)]
+    #[ORM\JoinColumn(name: "id_campagne", referencedColumnName: "id_campagne", nullable: false)]
+    private ?Campagne $campagne = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
-    private ?string $id_ouvrier = null;
+    #[ORM\ManyToOne(targetEntity: Ouvrier::class)]
+    #[ORM\JoinColumn(name: "id_ouvrier", referencedColumnName: "id_ouvrier", nullable: false)]
+    private ?Ouvrier $ouvrier = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
-    private ?string $id_intrant = null;
+    #[ORM\ManyToOne(targetEntity: Intrant::class)]
+    #[ORM\JoinColumn(name: "id_intrant", referencedColumnName: "id_intrant", nullable: true)]
+    private ?Intrant $intrant = null;
 
-    #[ORM\Column]
-    private ?\DateTime $dateRealisation = null;
+    #[ORM\Column(name: "dateRealisation", type: Types::DATE_MUTABLE)]
+    private ?\DateTimeInterface $dateRealisation = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(name: "quantiteIntrant", type: "float", nullable: true)]
     private ?float $quantiteIntrant = null;
 
-    public function getId(): ?string
-    {
-        return $this->id_tache;
-    }
+    #[ORM\Column(name: "uuid_local", type: Types::STRING, length: 36, nullable: true)]
+    private ?string $uuidLocal = null;
 
-    public function setId(string $id_tache): static
-    {
-        $this->id_tache = $id_tache;
+    public function getIdRealisation(): ?string { return $this->id_realisation; }
 
-        return $this;
-    }
+    public function getTache(): ?Tache { return $this->tache; }
+    public function setTache(?Tache $tache): static { $this->tache = $tache; return $this; }
 
-    public function getIdCampagne(): ?string
-    {
-        return $this->id_campagne;
-    }
+    public function getCampagne(): ?Campagne { return $this->campagne; }
+    public function setCampagne(?Campagne $campagne): static { $this->campagne = $campagne; return $this; }
 
-    public function setIdCampagne(string $id_campagne): static
-    {
-        $this->id_campagne = $id_campagne;
+    public function getOuvrier(): ?Ouvrier { return $this->ouvrier; }
+    public function setOuvrier(?Ouvrier $ouvrier): static { $this->ouvrier = $ouvrier; return $this; }
 
-        return $this;
-    }
+    public function getIntrant(): ?Intrant { return $this->intrant; }
+    public function setIntrant(?Intrant $intrant): static { $this->intrant = $intrant; return $this; }
 
-    public function getIdOuvrier(): ?string
-    {
-        return $this->id_ouvrier;
-    }
+    public function getDateRealisation(): ?\DateTimeInterface { return $this->dateRealisation; }
+    public function setDateRealisation(\DateTimeInterface $dateRealisation): static { $this->dateRealisation = $dateRealisation; return $this; }
 
-    public function setIdOuvrier(string $id_ouvrier): static
-    {
-        $this->id_ouvrier = $id_ouvrier;
+    public function getQuantiteIntrant(): ?float { return $this->quantiteIntrant; }
+    public function setQuantiteIntrant(?float $quantiteIntrant): static { $this->quantiteIntrant = $quantiteIntrant; return $this; }
 
-        return $this;
-    }
-
-    public function getIdIntrant(): ?string
-    {
-        return $this->id_intrant;
-    }
-
-    public function setIdIntrant(string $id_intrant): static
-    {
-        $this->id_intrant = $id_intrant;
-
-        return $this;
-    }
-
-    public function getIdRealisation(): ?string
-    {
-        return $this->id_realisation;
-    }
-
-    public function setIdRealisation(string $id_realisation): static
-    {
-        $this->id_realisation = $id_realisation;
-
-        return $this;
-    }
-
-    public function getDateRealisation(): ?\DateTime
-    {
-        return $this->dateRealisation;
-    }
-
-    public function setDateRealisation(\DateTime $dateRealisation): static
-    {
-        $this->dateRealisation = $dateRealisation;
-
-        return $this;
-    }
-
-    public function getQuantiteIntrant(): ?float
-    {
-        return $this->quantiteIntrant;
-    }
-
-    public function setQuantiteIntrant(?float $quantiteIntrant): static
-    {
-        $this->quantiteIntrant = $quantiteIntrant;
-
-        return $this;
-    }
+    public function getUuidLocal(): ?string { return $this->uuidLocal; }
+    public function setUuidLocal(?string $uuidLocal): static { $this->uuidLocal = $uuidLocal; return $this; }
 }

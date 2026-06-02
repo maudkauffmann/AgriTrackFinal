@@ -17,16 +17,16 @@ class Tache
     #[ORM\Column(name: "nomTache", length: 30)]
     private ?string $nomTache = null;
 
-    #[ORM\Column(name: "uuid_local", type: "string", length: 36, unique: true, nullable: true)]
-    private ?string $uuidLocal = null;
-
     #[ORM\ManyToOne(targetEntity: Parcelle::class)]
     #[ORM\JoinColumn(name: "parcelle_id", referencedColumnName: "id_parcelle", onDelete: "SET NULL")]
     private ?Parcelle $parcelle = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    #[ORM\JoinColumn(name: "utilisateur_id", referencedColumnName: "id_utilisateur", onDelete: "SET NULL")]
-    private ?Utilisateur $ouvrier = null;
+    #[ORM\ManyToOne(targetEntity: Ouvrier::class)]
+    #[ORM\JoinColumn(name: "ouvrier_id", referencedColumnName: "id_ouvrier", onDelete: "SET NULL")]
+    private ?Ouvrier $ouvrier = null;
+
+    #[ORM\Column(name: "uuid_local", type: "string", length: 36, unique: true, nullable: true)]
+    private ?string $uuidLocal = null;
 
     public function getId(): ?string
     {
@@ -77,12 +77,12 @@ class Tache
         $this->parcelle = $parcelle;
     }
 
-    public function getOuvrier(): ?Utilisateur
+    public function getOuvrier(): ?Ouvrier
     {
         return $this->ouvrier;
     }
 
-    public function setOuvrier(?Utilisateur $ouvrier): void
+    public function setOuvrier(?Ouvrier $ouvrier): void
     {
         $this->ouvrier = $ouvrier;
     }

@@ -5,15 +5,19 @@ namespace App\Controller;
 use App\Repository\ParcelleRepository;
 use App\Repository\RealiserRepository;
 use App\Repository\UtilisateurRepository;
+use App\Repository\OuvrierRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Entity\Tache;
+use App\Entity\Realiser; // <-- ON UTILISE L'ENTITÉ REALISER ICI
 
 class ApiParcelleController extends AbstractController
 {
+    /**
+     * Récupère la liste des parcelles pour une plantation donnée
+     */
     #[Route('/api/plantations/{plantationId}/parcelles', name: 'api_plantation_parcelles', methods: ['GET'])]
     public function getParcellesByPlantation(int $plantationId, ParcelleRepository $parcelleRepository): JsonResponse
     {
@@ -22,6 +26,34 @@ class ApiParcelleController extends AbstractController
         return $this->json($parcelles, 200, [], ['groups' => 'parcelle:read']);
     }
 
+    /**
+     * AJOUT CRUCIAL : Récupère l'historique des actions d'une parcelle spécifique
+     * Supprime définitivement l'erreur 404 lors du chargement de l'historique
+     */
+    #[Route('/api/parcelles/{id}/actions', name: 'api_parcelle_actions', methods: ['GET'])]
+    public function getActionsParcelle(string $id, EntityManagerInterface $em): JsonResponse
+    {
+        $conn = $em->getConnection();
+
+        $sql = '
+        SELECT r.*, t.nomTache, o.nomOuvrier
+        FROM realiser r
+        INNER JOIN campagne c ON r.id_campagne = c.id_campagne
+        INNER JOIN tache t ON r.id_tache = t.id_tache
+        INNER JOIN ouvrier o ON r.id_ouvrier = o.id_ouvrier
+        WHERE c.id_parcelle = :parcelleId
+        ORDER BY r.dateRealisation DESC
+    ';
+
+        $resultSet = $conn->executeQuery($sql, ['parcelleId' => $id]);
+        $actions = $resultSet->fetchAllAssociative();
+
+        return new JsonResponse($actions, 200);
+    }
+
+    /**
+     * Assigne manuellement un ouvrier et une action à une parcelle
+     */
     #[Route('/api/parcelles/{id}/assigner-action', name: 'api_parcelle_assigner_action', methods: ['POST'])]
     public function assignerAction(
         int $id,
@@ -55,64 +87,68 @@ class ApiParcelleController extends AbstractController
         $parcelle->setAction($action);
         $em->flush();
 
-        return new JsonResponse(['success' => 'Assignation réussie ! Visible dans EasyAdmin.'], 200);
+        return new JsonResponse(['success' => 'Assignation réussie !'], 200);
     }
 
-    #[Route('/api/synchro/tache', name: 'api_synchro_tache', methods: ['POST'])]
-    public function synchroniserDonnees(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        ParcelleRepository $parcelleRepository,
-        UtilisateurRepository $utilisateurRepository
-    ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
-
-        // Validation des données minimales requises
-        if (!$data || !isset($data['nom']) || !isset($data['uuid'])) {
-            return new JsonResponse(['error' => 'Données incomplètes (nom et uuid requis)'], 400);
+    /**
+     * Synchronise et enregistre les actions envoyées par le formulaire React
+     * Gère le format d'envoi structuré { actions: [...] } pour s'adapter à Dexie
+     */
+    #[Route('/api/synchro/tache', name: 'api_synchro_tache', methods: ['POST', 'OPTIONS'])]
+    public function synchroniserDonnees(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        if ($request->getMethod() === 'OPTIONS') {
+            return new JsonResponse(null, 200);
         }
 
-        // Pour éviter les doublons de synchronisation avec l'UUID local
-        $tacheExistante = $entityManager->getRepository(Tache::class)->findOneBy([
-            'uuidLocal' => $data['uuid']
-        ]);
+        $payload = json_decode($request->getContent(), true);
 
-        if ($tacheExistante) {
-            return new JsonResponse([
-                'status' => 'Déjà synchronisé',
-                'id' => $tacheExistante->getId()
-            ], 200);
-        }
+        // Détection du wrapper "actions" envoyé par React
+        $actionsALire = isset($payload['actions']) ? $payload['actions'] : [$payload];
 
-        // Création de la tâche de base
-        $tache = new Tache();
-        $tache->setNomTache($data['nom']);
-        $tache->setUuidLocal($data['uuid']);
+        $syncedUuids = [];
 
-        // Liaison de la Parcelle si l'ID est fourni par le Front
-        if (!empty($data['parcelle_id'])) {
-            $parcelle = $parcelleRepository->find($data['parcelle_id']);
-            if ($parcelle) {
-                $tache->setParcelle($parcelle);
+        foreach ($actionsALire as $actionData) {
+            if (empty($actionData) || !isset($actionData['uuid'])) {
+                continue;
             }
-        }
 
-        // Liaison de l'Ouvrier si l'ID est fourni par le Front
-        if (!empty($data['ouvrier_id'])) {
-            $ouvrier = $utilisateurRepository->find($data['ouvrier_id']);
-            if ($ouvrier) {
-                $tache->setOuvrier($ouvrier);
+            $uuid = $actionData['uuid'];
+
+            // Anti-doublon : Vérifie si cet UUID local n'est pas déjà en base de données
+            $dejaSynchro = $em->getRepository(Realiser::class)->findOneBy(['uuidLocal' => $uuid]);
+            if ($dejaSynchro) {
+                $syncedUuids[] = $uuid;
+                continue;
             }
+
+            $tacheId = $actionData['tache_id'] ?? null;
+            $ouvrierId = $actionData['ouvrier_id'] ?? null;
+            $campagneId = $actionData['campagne_id'] ?? '1';
+            $intrantId = $actionData['intrant_id'] ?? '0'; // Force "0" pour éviter l'erreur NOT NULL
+
+            if (!$tacheId || !$ouvrierId) {
+                continue;
+            }
+
+            // Hydratation de l'entité Realiser conformément à tes colonnes SQL
+            $realisation = new Realiser();
+            $realisation->setIdTache((string)$tacheId);
+            $realisation->setIdOuvrier((string)$ouvrierId);
+            $realisation->setIdCampagne((string)$campagneId);
+            $realisation->setIdIntrant((string)$intrantId);
+            $realisation->setDateRealisation(new \DateTime());
+            $realisation->setUuidLocal($uuid);
+
+            $em->persist($realisation);
+            $syncedUuids[] = $uuid;
         }
 
-        // Sauvegarde finale
-        $entityManager->persist($tache);
-        $entityManager->flush();
+        $em->flush();
 
         return new JsonResponse([
             'status' => 'success',
-            'message' => 'Tâche synchronisée avec succès',
-            'id' => $tache->getId()
-        ], 201);
+            'synced_uuids' => $syncedUuids
+        ], 200);
     }
 }

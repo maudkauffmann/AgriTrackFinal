@@ -2,27 +2,27 @@
 
 namespace App\Controller;
 
-use App\Entity\Ouvrier;
+use App\Entity\Tache;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
-class ApiOuvrierController extends AbstractController
+class ApiTacheController extends AbstractController
 {
-    #[Route('/api/ouvriers', name: 'api_ouvrier_list', methods: ['GET'])]
+    #[Route('/api/taches', name: 'api_taches_list', methods: ['GET'])]
     public function list(EntityManagerInterface $em): JsonResponse
     {
-        $ouvriers = $em->getRepository(Ouvrier::class)->findAll();
+        $taches = $em->getRepository(Tache::class)->findAll();
         $data = [];
 
-        foreach ($ouvriers as $ouvrier) {
-            $id = $ouvrier->getIdOuvrier();
+        foreach ($taches as $tache) {
+            $id = $tache->getIdTache();
             $idString = (is_object($id) && method_exists($id, 'toBase58')) ? $id->toBase58() : (string)$id;
 
             $data[] = [
-                'id_ouvrier' => $idString,
-                'nomOuvrier' => $ouvrier->getNomOuvrier() ?? 'Ouvrier sans nom'
+                'id_tache' => $idString,
+                'nomTache' => $tache->getNomTache() ?? 'Tâche sans nom'
             ];
         }
 

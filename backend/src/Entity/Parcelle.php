@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ParcelleRepository::class)]
+#[ORM\Table(name: "parcelle")]
 class Parcelle
 {
     #[ORM\Id]
@@ -23,12 +24,14 @@ class Parcelle
     private ?Plantation $id_plantation = null;
 
     #[ORM\Column(name:"nomParcelle",length: 30)]
+    #[Groups(['parcelle:read'])]
     private ?string $nomParcelle = null;
 
     #[ORM\Column(name: "superficieParc")]
+    #[Groups(['parcelle:read'])]
     private ?float $superficieParc = null;
 
-    #[ORM\OneToMany(targetEntity: Campagne::class, mappedBy: 'id_parcelle')]
+    #[ORM\OneToMany(targetEntity: Campagne::class, mappedBy: 'parcelle')]
     private Collection $campagnes;
 
     public function __construct()

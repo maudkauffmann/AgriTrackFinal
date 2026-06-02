@@ -13,10 +13,14 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
+        api_cors:
+            pattern: ^/api
+            methods: [ OPTIONS ]
+            security: false
+
         login:
-            pattern: ^/api/login
+            pattern: ^/api/login$
             stateless: true
-            context: shared_auth # <--- Partage l'authentification avec 'main'
             json_login:
                 check_path: /api/login
                 username_path: telUtilisateur
@@ -36,7 +40,7 @@ security:
             provider: app_user_provider
             entry_point: form_login
             form_login:
-                login_path: app_login    # Route de ta page de login HTML
+                login_path: app_login    # Route de la page de login HTML
                 check_path: app_login
                 enable_csrf: true
             logout:
@@ -44,14 +48,18 @@ security:
             custom_authenticator: App\Security\AppAuthenticator
 
     access_control:
+        # CRITICAL 1 : Autoriser TOUTES les requêtes CORS OPTIONS sur /api avant les restrictions de jeton
+        - { path: ^/api, methods: [ OPTIONS ], roles: PUBLIC_ACCESS }
+
+        # 2. Permettre l'accès public au login de l'API
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY } # Sécurise tout le reste de l'API
-        - { path: ^/admin,     roles: ROLE_ADMIN }
         - { path: ^/login,     roles: PUBLIC_ACCESS }
-        - { path: ^/api/plantations, roles: IS_AUTHENTICATED_FULLY } # Ou ROLE_USER selon ta configuration
-        - { path: ^/api/parcelles, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/api/taches, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/api/ouvriers, roles: IS_AUTHENTICATED_FULLY }
+
+        # 3. Restreindre et sécuriser le reste de l'API (Demande un Token JWT valide)
+        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
+
+        # 4. Interface d'administration
+        - { path: ^/admin,     roles: ROLE_ADMIN }
 
     role_hierarchy:
         ROLE_SUPERVISEUR: ROLE_USER

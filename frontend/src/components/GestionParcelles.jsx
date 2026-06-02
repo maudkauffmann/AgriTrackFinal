@@ -3,8 +3,8 @@ import DetailsParcelle from './DetailsParcelle.jsx';
 
 /**
  * @typedef {Object} Parcelle
- * @property {string} id
- * @property {string} nom_parcelle
+ * @property {string} id_parcelle
+ * @property {string} nomParcelle
  * @property {float} superficieParc
  */
 
@@ -16,6 +16,7 @@ const GestionParcelles = ({ plantation, onBack }) => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
     const handleSelectParcelle = (parcelle) => {
         setSelectedParcelle(parcelle);
         sessionStorage.setItem('selected_parcelle', JSON.stringify(parcelle));
@@ -39,11 +40,11 @@ const GestionParcelles = ({ plantation, onBack }) => {
 
                 if (response.ok) {
                     const data = await response.json();
-
                     console.log("DONNÉES RECUES DE SYMFONY :", data);
-                    const rawList = Array.isArray(data) ? data : (data['hydra:member'] || []);
 
-                    setParcelles(Array.isArray(data) ? data : []);
+                    // Adaptation aux formats possibles (Array direct ou Hydra API Platform)
+                    const rawList = Array.isArray(data) ? data : (data['hydra:member'] || []);
+                    setParcelles(rawList);
                 } else {
                     setError("Impossible de charger les parcelles de cette plantation.");
                 }
@@ -79,17 +80,22 @@ const GestionParcelles = ({ plantation, onBack }) => {
                 ) : error ? (
                     <div className="error-message">⚠️ {error}</div>
                 ) : parcelles.length > 0 ? (
-                    parcelles.map((parcelle) => (
-                        <div
-                            key={parcelle.id}
-                            onClick={() => handleSelectParcelle(parcelle)}
-                            className="parcelle-card"
-                        >
-                            🌾 <strong>{parcelle.nomParcelle}</strong>
-                            <p>Le nom de la parcelle est {parcelle.id}</p>
-                            <span className="parcelle-surface">{parcelle.superficieParc} ha</span>
-                        </div>
-                    ))
+                    parcelles.map((parcelle, index) => {
+                        // Récupération sécurisée de l'ID de la parcelle
+                        const currentId = parcelle.id_parcelle || parcelle.id || index;
+
+                        return (
+                            <div
+                                key={currentId}
+                                onClick={() => handleSelectParcelle(parcelle)}
+                                className="parcelle-card"
+                            >
+                                🌾 <strong>{parcelle.nomParcelle || 'Parcelle sans nom'}</strong>
+                                <p>Identifiant de la parcelle : {currentId}</p>
+                                <span className="parcelle-surface">{parcelle.superficieParc || 0} ha</span>
+                            </div>
+                        );
+                    })
                 ) : (
                     <div className="empty-message">Aucune parcelle trouvée pour cette plantation.</div>
                 )}

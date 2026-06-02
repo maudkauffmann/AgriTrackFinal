@@ -10,34 +10,38 @@ use Doctrine\ORM\Mapping as ORM;
 class Intrant
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\GeneratedValue(strategy: "IDENTITY")]
+    #[ORM\Column(name: "id_intrant", type: Types::BIGINT)]
     private ?string $id_intrant = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\Column(name: "id_tp_intrant", type: Types::BIGINT)]
     private ?string $id_tp_intrant = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\Column(name: "id_unite", type: Types::BIGINT)]
     private ?string $id_unite = null;
 
-    #[ORM\Column(length: 30)]
+    #[ORM\Column(name: "nomIntrant", type: Types::STRING, length: 30)]
     private ?string $nomIntrant = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\Column(name: "stock", type: Types::BIGINT)]
     private ?string $stock = null;
 
-    #[ORM\Column]
-    private ?float $countUnitaire = null;
+    #[ORM\Column(name: "coutUnitaire", type: "float")]
+    private ?float $coutUnitaire = null;
 
     public function getId(): ?string
     {
         return $this->id_intrant;
     }
 
-    public function setId(string $id_intrant): static
+    public function getIdIntrant(): ?string
+    {
+        return $this->id_intrant;
+    }
+
+    public function setIdIntrant(?string $id_intrant): static
     {
         $this->id_intrant = $id_intrant;
-
         return $this;
     }
 
@@ -46,10 +50,9 @@ class Intrant
         return $this->id_tp_intrant;
     }
 
-    public function setIdTpIntrant(string $id_tp_intrant): static
+    public function setIdTpIntrant(?string $id_tp_intrant): static
     {
         $this->id_tp_intrant = $id_tp_intrant;
-
         return $this;
     }
 
@@ -58,10 +61,9 @@ class Intrant
         return $this->id_unite;
     }
 
-    public function setIdUnite(string $id_unite): static
+    public function setIdUnite(?string $id_unite): static
     {
         $this->id_unite = $id_unite;
-
         return $this;
     }
 
@@ -70,10 +72,9 @@ class Intrant
         return $this->nomIntrant;
     }
 
-    public function setNomIntrant(string $nomIntrant): static
+    public function setNomIntrant(?string $nomIntrant): static
     {
         $this->nomIntrant = $nomIntrant;
-
         return $this;
     }
 
@@ -82,22 +83,20 @@ class Intrant
         return $this->stock;
     }
 
-    public function setStock(string $stock): static
+    public function setStock(?string $stock): static
     {
         $this->stock = $stock;
-
         return $this;
     }
 
-    public function getCountUnitaire(): ?float
+    public function getCoutUnitaire(): ?float
     {
-        return $this->countUnitaire;
+        return $this->coutUnitaire;
     }
 
-    public function setCountUnitaire(float $countUnitaire): static
+    public function setCoutUnitaire(?float $coutUnitaire): static
     {
-        $this->countUnitaire = $countUnitaire;
-
+        $this->coutUnitaire = $coutUnitaire;
         return $this;
     }
 }
