@@ -5,7 +5,8 @@ import Inscription from "./pages/Inscription.jsx";
 import ListePlantation from "./components/ListePlantations.jsx";
 import GestionParcelles from "./components/GestionParcelles.jsx";
 import './App.css';
-import './services/synchroService';
+// Import du service qui contient toute la logique métier de synchro
+import { synchroniserDonneesHorsLigne } from './services/synchroService';
 
 function App() {
     const token = localStorage.getItem('token');
@@ -14,38 +15,14 @@ function App() {
     // Écouteur global pour la synchronisation automatique au retour d'Internet
     useEffect(() => {
         const handleOnline = async () => {
-            const offlineQueue = JSON.parse(localStorage.getItem('offline_actions') || '[]');
-
-            if (offlineQueue.length === 0) return;
-
-            console.log(`🌐 Réseau retrouvé ! Synchronisation de ${offlineQueue.length} tâche(s)...`);
-            const tokenSaved = localStorage.getItem('token');
-            const remainingActions = [...offlineQueue];
-
-            for (const action of offlineQueue) {
-                try {
-                    const res = await fetch('https://127.0.0.1:8000/api/synchro/tache', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${tokenSaved}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(action)
-                    });
-
-                    if (res.ok || res.status === 200) {
-                        // Supprime l'élément de la file d'attente s'il est validé ou déjà synchronisé
-                        remainingActions.shift();
-                        localStorage.setItem('offline_actions', JSON.stringify(remainingActions));
-                    }
-                } catch (err) {
-                    console.error("Échec temporaire de l'envoi pour cette action, arrêt de la boucle :", err);
-                    break;
-                }
-            }
-
-            if (remainingActions.length === 0) {
-                alert("🎉 Toutes les tâches saisies sur le terrain ont été synchronisées avec succès !");
+            console.log("🌐 Réseau retrouvé ! Lancement de la synchronisation...");
+            try {
+                // Appel unique au service centralisé.
+                // Il gère le localStorage, le format JSON, et l'envoi au serveur.
+                await synchroniserDonneesHorsLigne();
+                console.log("✅ Synchronisation terminée.");
+            } catch (err) {
+                console.error("Erreur lors de la synchronisation automatique :", err);
             }
         };
 

@@ -25,10 +25,12 @@ class ApiSynchroController extends AbstractController
         $payload = json_decode($request->getContent(), true);
 
         if (!$payload || !isset($payload['actions'])) {
-            return new JsonResponse(['error' => 'Données manquantes'], 400);
+            return new JsonResponse(['error' => 'Format JSON invalide ou clé "actions" manquante'], 400);
         }
 
         $syncedUuids = [];
+        $batchSize = 5; // Nombre d'objets traités avant chaque flush
+        $i = 0;
 
         foreach ($payload['actions'] as $action) {
             $uuid = $action['uuid'] ?? null;
@@ -41,12 +43,12 @@ class ApiSynchroController extends AbstractController
                 continue;
             }
 
-            // Récupération des objets entités depuis la base
-            $tache = $em->getRepository(Tache::class)->find($action['tache_id'] ?? null);
-            $ouvrier = $em->getRepository(Ouvrier::class)->find($action['ouvrier_id'] ?? null);
-            $campagne = $em->getRepository(Campagne::class)->find($action['campagne_id'] ?? null);
+            // Récupération des entités
+            $tache = isset($action['tache_id']) ? $em->getRepository(Tache::class)->find($action['tache_id']) : null;
+            $ouvrier = isset($action['ouvrier_id']) ? $em->getRepository(Ouvrier::class)->find($action['ouvrier_id']) : null;
+            $campagne = isset($action['campagne_id']) ? $em->getRepository(Campagne::class)->find($action['campagne_id']) : null;
 
-            // On ne crée la réalisation que si les entités liées existent
+            // Si une relation obligatoire est manquante, on passe cette action
             if (!$tache || !$ouvrier || !$campagne) {
                 continue;
             }
@@ -56,26 +58,31 @@ class ApiSynchroController extends AbstractController
             $realisation->setOuvrier($ouvrier);
             $realisation->setCampagne($campagne);
 
-            // Gestion de l'intrant (optionnel)
-            $intrantId = $action['intrant_id'] ?? null;
-            if ($intrantId) {
-                $intrant = $em->getRepository(Intrant::class)->find($intrantId);
+            if (!empty($action['intrant_id'])) {
+                $intrant = $em->getRepository(Intrant::class)->find($action['intrant_id']);
                 $realisation->setIntrant($intrant);
             }
 
-            // Gestion des champs simples
             $realisation->setDateRealisation(!empty($action['date_realisation']) ? new \DateTime($action['date_realisation']) : new \DateTime());
             $realisation->setQuantiteIntrant(isset($action['quantite_intrant']) ? (float)$action['quantite_intrant'] : null);
             $realisation->setUuidLocal($uuid);
 
             $em->persist($realisation);
             $syncedUuids[] = $uuid;
+            $i++;
+
+            // Traitement par lots pour éviter l'erreur 500 / Timeout
+            if (($i % $batchSize) === 0) {
+                $em->flush();
+                $em->clear(); // Libère la mémoire des objets persistés
+            }
         }
 
         try {
-            $em->flush();
+            $em->flush(); // Enregistre les restes
+            $em->clear();
         } catch (\Exception $e) {
-            return new JsonResponse(['error' => 'Erreur de base de données : ' . $e->getMessage()], 500);
+            return new JsonResponse(['error' => 'Erreur lors de l\'enregistrement final : ' . $e->getMessage()], 500);
         }
 
         return new JsonResponse([

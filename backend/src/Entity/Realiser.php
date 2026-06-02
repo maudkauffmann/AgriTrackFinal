@@ -15,15 +15,15 @@ class Realiser
     #[ORM\Column(name: "id_realisation", type: Types::BIGINT)]
     private ?string $id_realisation = null;
 
-    #[ORM\ManyToOne(targetEntity: Tache::class)]
+    #[ORM\ManyToOne(targetEntity: Tache::class, fetch: "EAGER")]
     #[ORM\JoinColumn(name: "id_tache", referencedColumnName: "id_tache", nullable: false)]
     private ?Tache $tache = null;
 
-    #[ORM\ManyToOne(targetEntity: Campagne::class)]
+    #[ORM\ManyToOne(targetEntity: Campagne::class, fetch: "EAGER")]
     #[ORM\JoinColumn(name: "id_campagne", referencedColumnName: "id_campagne", nullable: false)]
     private ?Campagne $campagne = null;
 
-    #[ORM\ManyToOne(targetEntity: Ouvrier::class)]
+    #[ORM\ManyToOne(targetEntity: Ouvrier::class, fetch: "EAGER")]
     #[ORM\JoinColumn(name: "id_ouvrier", referencedColumnName: "id_ouvrier", nullable: false)]
     private ?Ouvrier $ouvrier = null;
 
