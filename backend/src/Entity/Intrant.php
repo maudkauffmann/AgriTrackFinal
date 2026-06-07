@@ -14,11 +14,13 @@ class Intrant
     #[ORM\Column(name: "id_intrant", type: Types::BIGINT)]
     private ?string $id_intrant = null;
 
-    #[ORM\Column(name: "id_tp_intrant", type: Types::BIGINT)]
-    private ?string $id_tp_intrant = null;
+    #[ORM\ManyToOne(targetEntity: TypeIntrant::class)]
+    #[ORM\JoinColumn(name: "id_tp_intrant", referencedColumnName: "id_tp_intrant", nullable: false)]
+    private ?TypeIntrant $typeIntrant = null;
 
-    #[ORM\Column(name: "id_unite", type: Types::BIGINT)]
-    private ?string $id_unite = null;
+    #[ORM\ManyToOne(targetEntity: Unite::class)]
+    #[ORM\JoinColumn(name: "id_unite", referencedColumnName: "id_unite", nullable: false)]
+    private ?Unite $unite = null;
 
     #[ORM\Column(name: "nomIntrant", type: Types::STRING, length: 30)]
     private ?string $nomIntrant = null;
@@ -45,25 +47,25 @@ class Intrant
         return $this;
     }
 
-    public function getIdTpIntrant(): ?string
+    public function getTypeIntrant(): ?TypeIntrant
     {
-        return $this->id_tp_intrant;
+        return $this->typeIntrant;
     }
 
-    public function setIdTpIntrant(?string $id_tp_intrant): static
+    public function setTypeIntrant(?TypeIntrant $typeIntrant): static
     {
-        $this->id_tp_intrant = $id_tp_intrant;
+        $this->typeIntrant = $typeIntrant;
         return $this;
     }
 
-    public function getIdUnite(): ?string
+    public function getUnite(): ?Unite
     {
-        return $this->id_unite;
+        return $this->unite;
     }
 
-    public function setIdUnite(?string $id_unite): static
+    public function setUnite(?Unite $id_unite): static
     {
-        $this->id_unite = $id_unite;
+        $this->unite = $id_unite;
         return $this;
     }
 

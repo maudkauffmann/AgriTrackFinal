@@ -7,6 +7,7 @@ use App\Repository\RealiserRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\OuvrierRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Exception\ORMException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,21 +27,19 @@ class ApiParcelleController extends AbstractController
         return $this->json($parcelles, 200, [], ['groups' => 'parcelle:read']);
     }
 
-    /**
-     * AJOUT CRUCIAL : Récupère l'historique des actions d'une parcelle spécifique
-     * Supprime définitivement l'erreur 404 lors du chargement de l'historique
-     */
     #[Route('/api/parcelles/{id}/actions', name: 'api_parcelle_actions', methods: ['GET'])]
     public function getActionsParcelle(string $id, EntityManagerInterface $em): JsonResponse
     {
         $conn = $em->getConnection();
 
+        // Ajout du LEFT JOIN vers intrant pour récupérer nom et quantité
         $sql = '
-        SELECT r.*, t.nomTache, o.nomOuvrier
+        SELECT r.*, t.nomTache, o.nomOuvrier, i.nomIntrant
         FROM realiser r
         INNER JOIN campagne c ON r.id_campagne = c.id_campagne
         INNER JOIN tache t ON r.id_tache = t.id_tache
         INNER JOIN ouvrier o ON r.id_ouvrier = o.id_ouvrier
+        LEFT JOIN intrant i ON r.id_intrant = i.id_intrant
         WHERE c.id_parcelle = :parcelleId
         ORDER BY r.dateRealisation DESC
     ';
@@ -93,6 +92,7 @@ class ApiParcelleController extends AbstractController
     /**
      * Synchronise et enregistre les actions envoyées par le formulaire React
      * Gère le format d'envoi structuré { actions: [...] } pour s'adapter à Dexie
+     * @throws ORMException
      */
     #[Route('/api/synchro/tache', name: 'api_synchro_tache', methods: ['POST', 'OPTIONS'])]
     public function synchroniserDonnees(Request $request, EntityManagerInterface $em): JsonResponse
@@ -131,12 +131,16 @@ class ApiParcelleController extends AbstractController
                 continue;
             }
 
-            // Hydratation de l'entité Realiser conformément à tes colonnes SQL
+            // Hydratation sécurisée avec des références
             $realisation = new Realiser();
-            $realisation->setIdTache((string)$tacheId);
-            $realisation->setIdOuvrier((string)$ouvrierId);
-            $realisation->setIdCampagne((string)$campagneId);
-            $realisation->setIdIntrant((string)$intrantId);
+            $realisation->setTache($em->getReference(\App\Entity\Tache::class, $tacheId));
+            $realisation->setOuvrier($em->getReference(\App\Entity\Ouvrier::class, $ouvrierId));
+            $realisation->setCampagne($em->getReference(\App\Entity\Campagne::class, $campagneId));
+
+            if ($intrantId != '0') {
+                $realisation->setIntrant($em->getReference(\App\Entity\Intrant::class, $intrantId));
+            }
+
             $realisation->setDateRealisation(new \DateTime());
             $realisation->setUuidLocal($uuid);
 

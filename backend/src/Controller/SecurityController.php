@@ -16,6 +16,11 @@ class SecurityController extends AbstractController
         //     return $this->redirectToRoute('target_path');
         // }
 
+        if ($this->getUser()) {
+            dump($this->getUser()->getRoles());
+            die(); // Arrête tout pour afficher le tableau des rôles
+        }
+
         $error = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
 

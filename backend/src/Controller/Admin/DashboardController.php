@@ -8,7 +8,9 @@ use App\Controller\Admin\ParcelleCrudController;
 use App\Controller\Admin\OuvrierCrudController;
 use App\Controller\Admin\RealiserCrudController;
 use App\Entity\Culture;
+use App\Entity\Intrant;
 use App\Entity\RoleUtilisateur;
+use App\Entity\TypeIntrant;
 use App\Entity\Utilisateur;
 use App\Repository\TacheRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
@@ -51,5 +53,8 @@ class DashboardController extends AbstractDashboardController
         }
         yield MenuItem::linkTo(OuvrierCrudController::class, 'Ouvriers', 'fas fa-users');
         yield MenuItem::linkTo(TacheCrudController::class, 'Taches', 'fas fa-folder');
+        yield MenuItem::section('Gestion des Stocks');
+        yield MenuItem::linkTo(TypeIntrantCrudController::class, 'Types d\'intrants', 'fas fa-tags');
+        yield MenuItem::linkTo(IntrantCrudController::class, 'Intrants', 'fas fa-box');
     }
 }

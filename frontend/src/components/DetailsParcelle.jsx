@@ -7,51 +7,35 @@ const DetailsParcelle = ({ parcelle, onBack }) => {
     const [error, setError] = useState(null);
     const [showForm, setShowForm] = useState(false);
 
-    // Extraction sécurisée de l'ID de la parcelle (id_parcelle ou id)
     const parcelleId = parcelle?.id_parcelle || parcelle?.id;
 
     const fetchActions = async () => {
-        if (!parcelleId) {
-            setError("Identifiant de parcelle introuvable.");
-            setLoading(false);
-            return;
-        }
+        if (!parcelleId) return;
 
         const token = localStorage.getItem('token');
         try {
-            // URL absolue HTTPS vers ton API Symfony
             const response = await fetch(`https://127.0.0.1:8000/api/parcelles/${parcelleId}/actions`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (response.ok) {
                 const data = await response.json();
+                console.log("JSON reçu du serveur :", data);
                 setActionsCampagne(Array.isArray(data) ? data : []);
                 setError(null);
             } else {
                 setError("Impossible de charger l'historique.");
             }
         } catch (err) {
-            setError("Erreur réseau lors de la récupération des actions.");
+            setError("Erreur réseau.");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (parcelleId) {
-            fetchActions();
-        }
+        if (parcelleId) fetchActions();
     }, [parcelleId]);
-
-    const handleActionAjoutee = () => {
-        setShowForm(false);
-        setLoading(true);
-        fetchActions(); // Recharge instantanément l'historique après un ajout réussi
-    };
 
     return (
         <div className="details-parcelle-container">
@@ -59,57 +43,43 @@ const DetailsParcelle = ({ parcelle, onBack }) => {
 
             <div className="parcelle-header-box">
                 <h2>Fiche Détails : <span className="highlight-text">{parcelle?.nomParcelle || 'Nom inconnu'}</span></h2>
-                <p className="parcelle-meta">Superficie : <strong>{parcelle?.superficieParc ?? '0'} ha</strong></p>
             </div>
 
             <div className="campagne-section">
                 <div className="campagne-header">
-                    <h3>Suivi de la campagne en cours</h3>
+                    <h3>Suivi de la campagne</h3>
                     <button onClick={() => setShowForm(!showForm)} className="btn-trigger-action">
-                        {showForm ? "✖ Annuler l'action" : "➕ Planifier une action"}
+                        {showForm ? "✖ Annuler" : "➕ Enregistrer une action"}
                     </button>
                 </div>
 
-                {showForm && (
-                    <FormulaireAction
-                        parcelle={parcelle}
-                        onSuccess={handleActionAjoutee}
-                    />
-                )}
+                {showForm && <FormulaireAction parcelle={parcelle} onSuccess={() => { setShowForm(false); fetchActions(); }} />}
 
-                <h4 className="sub-title">Historique des actions de la campagne</h4>
+                <h4 className="sub-title">Historique</h4>
                 <div className="actions-list">
-                    {loading ? (
-                        <div className="loading-message">Chargement des actions...</div>
-                    ) : error ? (
-                        <div className="error-message">⚠️ {error}</div>
-                    ) : actionsCampagne.length > 0 ? (
-                        actionsCampagne.map((action, index) => {
-                            // Extraction robuste de l'identifiant unique (MySQL vs Doctrine)
-                            const actionKey = action.id_realisation || action.idRealisation || action.id || index;
-
-                            // Association flexible des libellés (gère le format à plat SQL et l'objet imbriqué)
-                            const nomTache = action.nomTache || action.tache?.nomTache || action.nom || "Action";
-                            const nomOuvrier = action.nomOuvrier || action.ouvrier?.nomOuvrier || action.ouvrier?.nomUtilisateur || `Ouvrier #${action.id_ouvrier || action.idOuvrier || ''}`;
-
-                            // Lecture rigoureuse de la date (gère dateRealisation et date_realisation)
-                            const bruteDate = action.dateRealisation || action.date_realisation;
+                    {loading ? <div className="loading-message">Chargement...</div> : error ? <div className="error-message">{error}</div> : actionsCampagne.length > 0 ? (
+                        actionsCampagne.map((rawAction, index) => {
+                            // NORMALISATION : On force toutes les clés en minuscules pour éviter les erreurs
+                            const a = Object.keys(rawAction).reduce((acc, key) => { acc[key.toLowerCase()] = rawAction[key]; return acc; }, {});
 
                             return (
-                                <div key={actionKey} className="action-item-card">
+                                <div key={a.id_realisation || index} className="action-item-card">
                                     <div className="action-info">
-                                        <span className="action-badge">🛠️ {nomTache}</span>
-                                        <span className="action-worker">👤 {nomOuvrier}</span>
+                                        <span className="action-badge">🛠️ {a.nomtache || "Action"}</span>
+                                        <span className="action-worker">👤 {a.nomouvrier || "Inconnu"}</span>
+                                        {a.nomintrant && (
+                                            <div className="action-intrant-details">
+                                                📦 {a.nomintrant} : <strong>{a.quantiteintrant} {a.unite}</strong>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="action-date">
-                                        📅 {bruteDate ? new Date(bruteDate).toLocaleDateString('fr-FR') : 'Date inconnue'}
+                                        📅 {a.daterealisation ? new Date(a.daterealisation).toLocaleDateString() : 'Date inconnue'}
                                     </div>
                                 </div>
                             );
                         })
-                    ) : (
-                        <div className="empty-message">Aucune action n'a encore été enregistrée pour cette campagne.</div>
-                    )}
+                    ) : <div className="empty-message">Aucune action enregistrée.</div>}
                 </div>
             </div>
         </div>

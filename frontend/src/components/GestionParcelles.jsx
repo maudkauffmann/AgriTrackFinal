@@ -73,7 +73,7 @@ const GestionParcelles = ({ plantation, onBack }) => {
         <div className="parcelles-container">
             <button onClick={onBack} className="btn-back">← Retour aux plantations</button>
             <h2>Parcelles de : <span className="highlight-text">{plantation?.nomPlantation}</span></h2>
-            <p className="subtitle-info"><i>Cliquez sur une parcelle pour voir ses détails et ses campagnes</i></p>
+            <p className="subtitle-info"><i>Cliquez sur une parcelle pour voir ses détails et enregistrer des actions</i></p>
             <div className="parcelles-grid">
                 {loading ? (
                     <div className="loading-message">Chargement des parcelles...</div>
@@ -91,7 +91,6 @@ const GestionParcelles = ({ plantation, onBack }) => {
                                 className="parcelle-card"
                             >
                                 🌾 <strong>{parcelle.nomParcelle || 'Parcelle sans nom'}</strong>
-                                <p>Identifiant de la parcelle : {currentId}</p>
                                 <span className="parcelle-surface">{parcelle.superficieParc || 0} ha</span>
                             </div>
                         );

@@ -21,17 +21,15 @@ const Login = () => {
             const res = await axios.post(`${apiUrl}/api/login`, {
                 telUtilisateur: credentials.telUtilisateur,
                 password: credentials.password
-            }, {
-                withCredentials: true
             });
 
             if (res.data.token) {
                 localStorage.setItem('token', res.data.token);
+                localStorage.setItem('user', JSON.stringify(res.data.user));
                 window.location.href = "/";
             }
         } catch (err) {
-            console.error("Erreur détaillée :", err);
-            alert("Erreur de connexion : " + (err.response?.data?.message || "Identifiants incorrects."));
+            alert("Erreur : " + (err.response?.data?.message || "Identifiants incorrects."));
         }
     };
 

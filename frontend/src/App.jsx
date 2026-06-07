@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route, Navigate, Link} from 'react-router-dom';
 import Login from './pages/Login';
 import Inscription from "./pages/Inscription.jsx";
 import ListePlantation from "./components/ListePlantations.jsx";
 import GestionParcelles from "./components/GestionParcelles.jsx";
 import './App.css';
-// Import du service qui contient toute la logique métier de synchro
 import { synchroniserDonneesHorsLigne } from './services/synchroService';
+import ParametresCompte from "./components/ParametresCompte.jsx";
 
 function App() {
     const token = localStorage.getItem('token');
@@ -35,6 +35,7 @@ function App() {
             <Routes>
                 <Route path="/inscription" element={<Inscription />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/parametres" element={isAuthenticated ? <ParametresCompte /> : <Navigate to="/login" />} />
                 <Route
                     path="/"
                     element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />}
@@ -79,11 +80,16 @@ const Dashboard = () => {
         <div className="dashboard-layout">
             <header className="main-header">
                 <h1>AgriTrack</h1>
-                <button onClick={handleLogout} className="btn-logout">Déconnexion</button>
+                <div className="header-actions">
+                    <Link to="/parametres" className="btn-logout" style={{ textDecoration: 'none' }}>
+                        ⚙️ Mon Profil
+                    </Link>
+                    <button onClick={handleLogout} className="btn-logout">Déconnexion</button>
+                </div>
             </header>
 
             <div className="welcome-banner">
-                <h2>Bienvenue sur votre exploitation 👋</h2>
+                <h2>Bienvenue sur votre exploitation</h2>
                 <p>Espace de gestion connecté</p>
             </div>
 

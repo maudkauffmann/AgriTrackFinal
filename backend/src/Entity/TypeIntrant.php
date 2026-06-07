@@ -11,8 +11,8 @@ class TypeIntrant
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::BIGINT)]
-    private ?string $id_tp_intrant = null;
+    #[ORM\Column(name: "id_tp_intrant", type: Types::BIGINT)]
+    private ?string $id = null;
 
     #[ORM\Column(length: 30)]
     private ?string $nomTpIntrant = null;
@@ -20,12 +20,17 @@ class TypeIntrant
 
     public function getId(): ?string
     {
-        return $this->id_tp_intrant;
+        return $this->id;
+    }
+
+    public function getIdTpIntrant(): ?string
+    {
+        return $this->id;
     }
 
     public function setId(string $id_tp_intrant): static
     {
-        $this->id_tp_intrant = $id_tp_intrant;
+        $this->id = $id_tp_intrant;
 
         return $this;
     }
@@ -40,5 +45,10 @@ class TypeIntrant
         $this->nomTpIntrant = $nomTpIntrant;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->getNomTpIntrant();
     }
 }

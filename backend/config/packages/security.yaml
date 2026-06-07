@@ -42,7 +42,7 @@ security:
             form_login:
                 login_path: app_login    # Route de la page de login HTML
                 check_path: app_login
-                enable_csrf: true
+                enable_csrf: false
             logout:
                 path: app_logout
             custom_authenticator: App\Security\AppAuthenticator

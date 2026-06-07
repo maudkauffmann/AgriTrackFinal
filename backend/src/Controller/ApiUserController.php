@@ -59,4 +59,54 @@ class ApiUserController extends AbstractController
             ], 500);
         }
     }
+
+    #[Route('/user/me', name: 'user_me', methods: ['GET'])]
+    public function me(): JsonResponse
+    {
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+
+        // DEBUG : Si vous obtenez null ici, votre token JWT n'est pas reconnu
+        if (!$user) {
+            return new JsonResponse(['message' => 'Non authentifié'], 401);
+        }
+
+        return new JsonResponse([
+            'nomUtilisateur' => $user->getNomUtilisateur(),
+            'telUtilisateur' => $user->getTelUtilisateur()
+        ]);
+    }
+
+    #[Route('/user/update', name: 'user_update', methods: ['PATCH'])]
+    public function update(Request $request, UserPasswordHasherInterface $hasher, EntityManagerInterface $em): JsonResponse
+    {
+        /** @var Utilisateur $user */
+        $user = $this->getUser();
+        $data = json_decode($request->getContent(), true);
+
+        // Mise à jour du nom
+        if (isset($data['nomUtilisateur'])) {
+            $user->setNomUtilisateur($data['nomUtilisateur']);
+        }
+
+        // Mise à jour du téléphone
+        if (isset($data['telUtilisateur'])) {
+            $user->setTelUtilisateur($data['telUtilisateur']);
+        }
+
+        // Mise à jour du mot de passe (si présent)
+        if (!empty($data['newPassword'])) {
+            $user->setPassword($hasher->hashPassword($user, $data['newPassword']));
+        }
+
+        $em->flush();
+
+        return new JsonResponse([
+            'status' => 'success',
+            'user' => [
+                'nomUtilisateur' => $user->getNomUtilisateur(),
+                'telUtilisateur' => $user->getTelUtilisateur()
+            ]
+        ]);
+    }
 }

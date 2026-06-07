@@ -52,7 +52,7 @@ const ListePlantation = ({ onSelectPlantation }) => {
             <h3 className="section-title">Mes Plantations</h3>
             <div className="plantations-grid">
                 {loading ? (
-                    <div className="loading-message">Chargement de vos parcelles...</div>
+                    <div className="loading-message">Chargement de vos plantations...</div>
                 ) : error ? (
                     <div className="error-message">⚠️ {error}</div>
                 ) : plantations.length > 0 ? (
