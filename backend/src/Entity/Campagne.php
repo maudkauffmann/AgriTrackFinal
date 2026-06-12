@@ -29,7 +29,7 @@ class Campagne
     #[ORM\Column(name: "dateDebut", type: Types::DATE_MUTABLE)]
     private ?\DateTime $dateDeb = null;
 
-    #[ORM\Column(name: "dateFin", type: Types::DATE_MUTABLE)]
+    #[ORM\Column(name: "dateFin", type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $dateFin = null;
 
     public function getId(): ?string

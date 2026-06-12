@@ -32,7 +32,6 @@ class ApiParcelleController extends AbstractController
     {
         $conn = $em->getConnection();
 
-        // Ajout du LEFT JOIN vers intrant pour récupérer nom et quantité
         $sql = '
         SELECT r.*, t.nomTache, o.nomOuvrier, i.nomIntrant
         FROM realiser r

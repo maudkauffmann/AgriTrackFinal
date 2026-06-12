@@ -14,15 +14,13 @@ class ApiCampagneController extends AbstractController
     #[Route('/campagnes', name: 'get_campagnes', methods: ['GET'])]
     public function getCampagnes(CampagneRepository $campagneRepository): JsonResponse
     {
-        $campagnes = $campagneRepository->findAll();
+        $campagnes = $campagneRepository->findBy(['dateFin' => null]);
 
         $data = [];
         foreach ($campagnes as $campagne) {
             $data[] = [
                 'id_campagne' => $campagne->getIdCampagne(),
                 'nomCampagne' => $campagne->getNomCampagne(),
-                'dateDebut' => $campagne->getDateDeb()?->format('Y-m-to'),
-                'dateFin' => $campagne->getDateFin()?->format('Y-m-to'),
             ];
         }
 

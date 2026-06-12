@@ -421,3 +421,58 @@
   color: #2e7d32;
   font-weight: 500;
 }
+
+/* Style pour le groupe de l'ouvrier avec le bouton ajout */
+.ouvrier-input-group {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+}
+
+/* Bouton pour afficher la zone d'ajout */
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 5px;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Conteneur de la zone d'ajout (nom + tel + valider) */
+.add-ouvrier-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 15px;
+  background-color: #f1f8e9;
+  border: 1px solid #c5e1a5;
+  border-radius: 10px;
+  margin-top: 5px;
+}
+
+/* Inputs dans la zone d'ajout */
+.add-ouvrier-box input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Bouton valider spécifique à l'ajout */
+.add-ouvrier-box button {
+  background-color: #2e7d32;
+  color: white;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
